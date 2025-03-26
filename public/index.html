@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>郑州轻工业大学硕士研究生复试通知监控</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin: 0;
+        }
+        .status-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        #lastUpdate {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .status-table th, .status-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .status-table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        .status-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .status-clickable {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .status-non-clickable {
+            color: #7f8c8d;
+        }
+        .status-changed {
+            animation: highlight 8s ease-in-out;
+        }
+        @keyframes highlight {
+            0% { background-color: rgba(255, 240, 0, 0.7); }
+            50% { background-color: rgba(255, 240, 0, 0.3); }
+            100% { background-color: transparent; }
+        }
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        .auto-refresh input {
+            margin-right: 5px;
+        }
+        .unit-code {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-right: 5px;
+        }
+        .contact-info {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+        .notification-settings {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .notification-toggle {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .notification-toggle label {
+            margin-left: 5px;
+        }
+        .event-log {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+        .event-log h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .event-log-item {
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .event-log-item:last-child {
+            border-bottom: none;
+        }
+        .event-time {
+            color: #7f8c8d;
+            margin-right: 10px;
+        }
+        .status-to-clickable {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .notification-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 350px;
+            background-color: #fff;
+            border-left: 4px solid #27ae60;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            padding: 16px;
+            z-index: 9999;
+            transform: translateX(400px);
+            transition: transform 0.3s ease-out;
+        }
+        .notification-panel.show {
+            transform: translateX(0);
+        }
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        .notification-content {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .notification-time {
+            color: #7f8c8d;
+            font-size: 12px;
+            text-align: right;
+        }
+        .test-panel {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #eee;
+        }
+        .test-panel h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .test-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .test-btn:hover {
+            background-color: #c0392b;
+        }
+        .test-select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>郑州轻工业大学硕士研究生复试通知监控</h1>
+        <p>监控数据来源：<a href="https://yjsc.zzuli.edu.cn/2025/0325/c2878a330869/page.htm" target="_blank">郑州轻工业大学2025年硕士研究生复试信息发布页面</a></p>
+    </div>
+
+    <div class="status-panel">
+        <div class="status-header">
+            <div>
+                <h2>招生单位状态监控</h2>
+                <div id="lastUpdate">最后更新时间：-</div>
+                <div class="notification-settings">
+                    <div class="notification-toggle">
+                        <input type="checkbox" id="desktopNotification" checked>
+                        <label for="desktopNotification">桌面通知</label>
+                    </div>
+                    <div class="notification-toggle">
+                        <input type="checkbox" id="soundNotification" checked>
+                        <label for="soundNotification">声音提醒</label>
+                    </div>
+                </div>
+            </div>
+            <div class="auto-refresh">
+                <input type="checkbox" id="autoRefresh" checked>
+                <label for="autoRefresh">自动刷新（30秒）</label>
+                <button id="manualRefresh" class="refresh-btn">立即刷新</button>
+            </div>
+        </div>
+
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>招生单位代码</th>
+                    <th>招生单位</th>
+                    <th>联系方式</th>
+                    <th>状态</th>
+                    <th>变化时间</th>
+                </tr>
+            </thead>
+            <tbody id="statusBody">
+                <tr>
+                    <td colspan="6" style="text-align: center;">加载中...</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="test-panel">
+            <h3>测试功能</h3>
+            <p>选择一个招生单位并模拟状态变化，用于测试通知功能</p>
+            <div class="test-controls">
+                <select id="testDepartment" class="test-select">
+                    <option value="">-- 选择招生单位 --</option>
+                </select>
+                <button id="testStateChange" class="test-btn">模拟状态变化</button>
+            </div>
+        </div>
+        
+        <div class="event-log">
+            <h3>状态变化记录</h3>
+            <div id="eventLogContent"></div>
+        </div>
+    </div>
+    
+    <!-- 通知面板 -->
+    <div id="notificationPanel" class="notification-panel">
+        <div class="notification-title">状态更新提醒</div>
+        <div id="notificationContent" class="notification-content"></div>
+        <div id="notificationTime" class="notification-time"></div>
+    </div>
+    
+    <!-- 提示音效 -->
+    <audio id="notificationSound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3" preload="auto"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 连接Socket.IO服务器
+        const socket = io();
+        
+        // 获取DOM元素
+        const statusBody = document.getElementById('statusBody');
+        const lastUpdateElement = document.getElementById('lastUpdate');
+        const autoRefreshCheckbox = document.getElementById('autoRefresh');
+        const manualRefreshButton = document.getElementById('manualRefresh');
+        const eventLogContent = document.getElementById('eventLogContent');
+        const desktopNotificationCheckbox = document.getElementById('desktopNotification');
+        const soundNotificationCheckbox = document.getElementById('soundNotification');
+        const notificationPanel = document.getElementById('notificationPanel');
+        const notificationContent = document.getElementById('notificationContent');
+        const notificationTime = document.getElementById('notificationTime');
+        const notificationSound = document.getElementById('notificationSound');
+        const testDepartmentSelect = document.getElementById('testDepartment');
+        const testStateChangeButton = document.getElementById('testStateChange');
+        
+        // 存储上一次的状态数据用于比较变化
+        let previousData = {};
+        // 存储当前数据
+        let currentData = [];
+        // 存储通知权限状态
+        let notificationPermission = false;
+        // 存储历史变化记录
+        const statusChangeHistory = [];
+        
+        // 请求桌面通知权限
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("此浏览器不支持桌面通知");
+                desktopNotificationCheckbox.checked = false;
+                desktopNotificationCheckbox.disabled = true;
+                return;
+            }
+            
+            if (Notification.permission === "granted") {
+                notificationPermission = true;
+                return;
+            }
+            
+            if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        notificationPermission = true;
+                    } else {
+                        desktopNotificationCheckbox.checked = false;
+                    }
+                });
+            } else {
+                desktopNotificationCheckbox.checked = false;
+            }
+        }
+        
+        // 显示桌面通知
+        function showDesktopNotification(title, message) {
+            if (notificationPermission && desktopNotificationCheckbox.checked) {
+                const notification = new Notification(title, {
+                    body: message,
+                    icon: '/favicon.ico'
+                });
+                
+                // 点击通知时打开应用
+                notification.onclick = function() {
+                    window.focus();
+                    this.close();
+                };
+                
+                // 5秒后自动关闭
+                setTimeout(() => notification.close(), 5000);
+            }
+        }
+        
+        // 显示页面内通知
+        function showPageNotification(message) {
+            notificationContent.textContent = message;
+            notificationTime.textContent = new Date().toLocaleString();
+            notificationPanel.classList.add('show');
+            
+            // 5秒后隐藏通知
+            setTimeout(() => {
+                notificationPanel.classList.remove('show');
+            }, 5000);
+        }
+        
+        // 播放通知声音
+        function playNotificationSound() {
+            if (soundNotificationCheckbox.checked) {
+                notificationSound.play();
+            }
+        }
+        
+        // 添加状态变化记录
+        function addStatusChangeLog(dept, isNowClickable) {
+            const now = new Date();
+            const timestamp = now.toLocaleString();
+            
+            const logItem = {
+                time: timestamp,
+                department: dept.name,
+                oldStatus: isNowClickable ? '不可点击' : '可点击',
+                newStatus: isNowClickable ? '可点击' : '不可点击',
+                url: dept.url || ''
+            };
+            
+            // 添加到历史记录的开头（新记录在上面）
+            statusChangeHistory.unshift(logItem);
+            
+            // 更新日志显示
+            updateStatusChangeLog();
+            
+            // 如果是变为可点击状态，显示通知
+            if (isNowClickable) {
+                const message = `${dept.name} (${dept.code}) 状态变为可点击，变化时间: ${timestamp}`;
+                
+                // 显示桌面通知
+                showDesktopNotification('招生单位状态变化', message);
+                
+                // 显示页面内通知
+                showPageNotification(message);
+                
+                // 播放提示音
+                playNotificationSound();
+            }
+        }
+        
+        // 更新状态变化日志显示
+        function updateStatusChangeLog() {
+            eventLogContent.innerHTML = '';
+            
+            if (statusChangeHistory.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'event-log-item';
+                emptyMessage.textContent = '暂无状态变化记录';
+                eventLogContent.appendChild(emptyMessage);
+                return;
+            }
+            
+            // 显示最新的20条记录
+            const recordsToShow = statusChangeHistory.slice(0, 20);
+            
+            recordsToShow.forEach(record => {
+                const logItem = document.createElement('div');
+                logItem.className = 'event-log-item';
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'event-time';
+                timeSpan.textContent = record.time;
+                
+                const contentSpan = document.createElement('span');
+                if (record.newStatus === '可点击') {
+                    contentSpan.className = 'status-to-clickable';
+                    contentSpan.textContent = `${record.department} 状态由${record.oldStatus}变为${record.newStatus}`;
+                    if (record.url) {
+                        const link = document.createElement('a');
+                        link.href = record.url;
+                        link.textContent = '  [查看链接]';
+                        link.target = '_blank';
+                        contentSpan.appendChild(link);
+                    }
+                } else {
+                    contentSpan.textContent = `${record.department} 状态由${record.oldStatus}变为${record.newStatus}`;
+                }
+                
+                logItem.appendChild(timeSpan);
+                logItem.appendChild(contentSpan);
+                eventLogContent.appendChild(logItem);
+            });
+        }
+        
+        // 更新测试下拉选择框
+        function updateTestDepartmentSelect(departments) {
+            testDepartmentSelect.innerHTML = '<option value="">-- 选择招生单位 --</option>';
+            
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.code;
+                option.textContent = `${dept.code} - ${dept.name} (${dept.clickable ? '可点击' : '不可点击'})`;
+                testDepartmentSelect.appendChild(option);
+            });
+        }
+        
+        // 模拟状态变化
+        function simulateStateChange(deptCode) {
+            const dept = currentData.find(d => d.code === deptCode);
+            if (!dept) return;
+            
+            // 创建一个深拷贝用于模拟变化
+            const deptCopy = JSON.parse(JSON.stringify(dept));
+            
+            // 反转点击状态
+            deptCopy.clickable = !deptCopy.clickable;
+            
+            // 如果变为可点击，添加URL
+            if (deptCopy.clickable && !deptCopy.url) {
+                deptCopy.url = `http://yjsc.zzuli.edu.cn/2025/0326/c2881a331099/page.htm?deptCode=${deptCode}`;
+            }
+            
+            // 标记状态变化并触发相应的通知
+            const row = document.querySelector(`tr[data-code="${deptCode}"]`);
+            if (row) {
+                row.classList.add('status-changed');
+                // 添加到变化记录
+                addStatusChangeLog(deptCopy, deptCopy.clickable);
+                
+                // 更新DOM
+                const statusCell = row.querySelector('.status-cell');
+                const nameCell = row.querySelector('.name-cell');
+                const timeCell = row.querySelector('.time-cell');
+                
+                if (statusCell) {
+                    statusCell.textContent = deptCopy.clickable ? '可点击' : '不可点击';
+                    statusCell.className = deptCopy.clickable ? 'status-clickable status-cell' : 'status-non-clickable status-cell';
+                }
+                
+                if (nameCell) {
+                    nameCell.innerHTML = '';
+                    if (deptCopy.clickable) {
+                        const link = document.createElement('a');
+                        link.href = deptCopy.url;
+                        link.textContent = deptCopy.name;
+                        link.target = '_blank';
+                        nameCell.appendChild(link);
+                    } else {
+                        nameCell.textContent = deptCopy.name;
+                    }
+                }
+                
+                if (timeCell) {
+                    timeCell.textContent = new Date().toLocaleString();
+                }
+                
+                // 更新内部状态
+                const index = currentData.findIndex(d => d.code === deptCode);
+                if (index !== -1) {
+                    currentData[index] = deptCopy;
+                    previousData[deptCopy.name] = deptCopy.clickable;
+                }
+            }
+        }
+        
+        // 监听状态更新
+        socket.on('statusUpdate', (data) => {
+            currentData = data.departments;
+            updateStatusTable(data.departments);
+            updateTestDepartmentSelect(data.departments);
+            lastUpdateElement.textContent = `最后更新时间：${new Date().toLocaleString()}`;
+        });
+
+        // 手动刷新按钮点击事件
+        manualRefreshButton.addEventListener('click', () => {
+            socket.emit('requestRefresh');
+            manualRefreshButton.disabled = true;
+            setTimeout(() => {
+                manualRefreshButton.disabled = false;
+            }, 2000); // 防止频繁点击
+        });
+
+        // 自动刷新切换
+        autoRefreshCheckbox.addEventListener('change', () => {
+            socket.emit('setAutoRefresh', autoRefreshCheckbox.checked);
+        });
+        
+        // 桌面通知切换
+        desktopNotificationCheckbox.addEventListener('change', () => {
+            if (desktopNotificationCheckbox.checked) {
+                requestNotificationPermission();
+            }
+        });
+        
+        // 模拟状态变化按钮点击事件
+        testStateChangeButton.addEventListener('click', () => {
+            const selectedDeptCode = testDepartmentSelect.value;
+            if (selectedDeptCode) {
+                simulateStateChange(selectedDeptCode);
+                // 更新下拉框选项
+                updateTestDepartmentSelect(currentData);
+            } else {
+                alert('请先选择一个招生单位');
+            }
+        });
+
+        // 更新状态表格
+        function updateStatusTable(departments) {
+            statusBody.innerHTML = '';
+            
+            departments.forEach((dept, index) => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-code', dept.code);
+                
+                // 检查状态是否发生变化
+                const statusChanged = previousData[dept.name] !== undefined && 
+                                     previousData[dept.name] !== dept.clickable;
+                
+                if (statusChanged) {
+                    row.classList.add('status-changed');
+                    // 添加到变化记录
+                    addStatusChangeLog(dept, dept.clickable);
+                }
+                
+                // 序号列
+                const indexCell = document.createElement('td');
+                indexCell.textContent = index + 1;
+                row.appendChild(indexCell);
+                
+                // 招生单位代码列
+                const codeCell = document.createElement('td');
+                codeCell.textContent = dept.code || '-';
+                row.appendChild(codeCell);
+                
+                // 招生单位名称列
+                const nameCell = document.createElement('td');
+                nameCell.className = 'name-cell';
+                if (dept.clickable) {
+                    const link = document.createElement('a');
+                    link.href = dept.url;
+                    link.textContent = dept.name;
+                    link.target = '_blank';
+                    nameCell.appendChild(link);
+                } else {
+                    nameCell.textContent = dept.name;
+                }
+                row.appendChild(nameCell);
+                
+                // 联系方式列
+                const contactCell = document.createElement('td');
+                contactCell.innerHTML = `${dept.contact || '-'}<br>${dept.phone || '-'}`;
+                row.appendChild(contactCell);
+                
+                // 状态列
+                const statusCell = document.createElement('td');
+                statusCell.className = 'status-cell';
+                if (dept.clickable) {
+                    statusCell.textContent = '可点击';
+                    statusCell.className += ' status-clickable';
+                } else {
+                    statusCell.textContent = '不可点击';
+                    statusCell.className += ' status-non-clickable';
+                }
+                row.appendChild(statusCell);
+                
+                // 变化时间列
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-cell';
+                timeCell.textContent = dept.changeTime || '-';
+                row.appendChild(timeCell);
+                
+                statusBody.appendChild(row);
+                
+                // 更新上一次的状态
+                previousData[dept.name] = dept.clickable;
+            });
+        }
+        
+        // 初始化通知权限
+        requestNotificationPermission();
+        
+        // 初始化状态变化日志
+        updateStatusChangeLog();
+    </script>
+</body>
+</html>
